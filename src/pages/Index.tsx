@@ -1,14 +1,179 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useCallback } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Header } from '@/components/Header';
+import { AlertPanel } from '@/components/AlertPanel';
+import { ImageAnalysisView } from '@/components/ImageAnalysisView';
+import { LiveCameraView } from '@/components/LiveCameraView';
+import { HistoryPanel } from '@/components/HistoryPanel';
+import { useAlertSound } from '@/hooks/useAlertSound';
+import { useDetectionHistory } from '@/hooks/useDetectionHistory';
+import { analyzeImage } from '@/lib/analyzeImage';
+import type { Detection, SeverityLevel } from '@/types/detection';
+import { Image, Video } from 'lucide-react';
+import { toast } from 'sonner';
 
-const Index = () => {
+export default function Index() {
+  const [activeTab, setActiveTab] = useState<'image' | 'camera'>('image');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isConnected] = useState(true);
+  const [detections, setDetections] = useState<Detection[]>([]);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [severityFilter, setSeverityFilter] = useState<SeverityLevel | null>(null);
+
+  const { playAlertSound } = useAlertSound();
+  const { history, addEntry, clearHistory, exportToJSON, getDetectionStats } = useDetectionHistory();
+
+  const handleAnalyze = useCallback(async (imageBase64: string) => {
+    setIsAnalyzing(true);
+    try {
+      const result = await analyzeImage(imageBase64);
+      setDetections(result.detections);
+      
+      // Add to history
+      addEntry(result, activeTab === 'image' ? 'image' : 'camera', imageBase64);
+
+      // Play alert sounds for critical/warning detections
+      const hasCritical = result.detections.some(d => d.severity === 'critical');
+      const hasWarning = result.detections.some(d => d.severity === 'warning');
+      
+      if (hasCritical) {
+        playAlertSound('critical');
+        toast.error('⚠️ Critical threat detected!', {
+          description: `${result.detections.filter(d => d.severity === 'critical').length} critical detection(s)`,
+        });
+      } else if (hasWarning) {
+        playAlertSound('warning');
+        toast.warning('Warning detected', {
+          description: `${result.detections.filter(d => d.severity === 'warning').length} warning(s)`,
+        });
+      } else if (result.detections.length > 0) {
+        playAlertSound('info');
+      }
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      toast.error('Analysis failed', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [activeTab, addEntry, playAlertSound]);
+
+  const handleCameraFrame = useCallback(async (imageBase64: string) => {
+    if (isAnalyzing) return; // Skip if already analyzing
+    await handleAnalyze(imageBase64);
+  }, [handleAnalyze, isAnalyzing]);
+
+  const handleClearAlerts = useCallback(() => {
+    setDetections([]);
+  }, []);
+
+  const handleExportAlerts = useCallback(() => {
+    const json = exportToJSON();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `safeguard-detections-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Export complete');
+  }, [exportToJSON]);
+
+  const handleExportPDF = useCallback(() => {
+    // Simple PDF export (text-based)
+    const stats = getDetectionStats();
+    const content = `
+SafeGuard AI Detection Report
+Generated: ${new Date().toLocaleString()}
+
+Summary:
+- Critical detections: ${stats.critical}
+- Warning detections: ${stats.warning}
+- Info detections: ${stats.info}
+
+Total entries: ${history.length}
+    `.trim();
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `safeguard-report-${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Report exported');
+  }, [history, getDetectionStats]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="flex min-h-screen flex-col bg-background">
+      <Header isConnected={isConnected} isAnalyzing={isAnalyzing} />
+      
+      <main className="flex flex-1 gap-4 p-4">
+        {/* Main content area */}
+        <div className="flex flex-1 flex-col gap-4">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={(v) => setActiveTab(v as 'image' | 'camera')}
+            className="flex-1"
+          >
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="image" className="gap-2">
+                <Image className="h-4 w-4" />
+                Image Analysis
+              </TabsTrigger>
+              <TabsTrigger value="camera" className="gap-2">
+                <Video className="h-4 w-4" />
+                Live Camera
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="image" className="mt-4">
+              <div className="rounded-lg border border-border bg-card/50 p-6">
+                <ImageAnalysisView
+                  onAnalyze={handleAnalyze}
+                  detections={detections}
+                  isAnalyzing={isAnalyzing}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="camera" className="mt-4">
+              <div className="rounded-lg border border-border bg-card/50 p-6">
+                <LiveCameraView
+                  onFrameCapture={handleCameraFrame}
+                  detections={detections}
+                  isAnalyzing={isAnalyzing}
+                  isActive={cameraActive}
+                  onToggle={setCameraActive}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {/* History Panel */}
+          <div className="h-[300px]">
+            <HistoryPanel
+              history={history}
+              onClear={clearHistory}
+              onExportJSON={handleExportAlerts}
+              onExportPDF={handleExportPDF}
+              severityFilter={severityFilter}
+              onSeverityFilterChange={setSeverityFilter}
+              stats={getDetectionStats()}
+            />
+          </div>
+        </div>
+
+        {/* Alert Panel Sidebar */}
+        <aside className="w-80 shrink-0">
+          <AlertPanel
+            detections={detections}
+            onClear={handleClearAlerts}
+            onExport={handleExportAlerts}
+          />
+        </aside>
+      </main>
     </div>
   );
-};
-
-export default Index;
+}
