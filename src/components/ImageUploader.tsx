@@ -57,11 +57,11 @@ export function ImageUploader({ onImageSelect, isAnalyzing }: ImageUploaderProps
 
   if (preview) {
     return (
-      <div className="relative rounded-lg border-2 border-border bg-card/50 p-4">
+      <div className="relative rounded-xl border border-border/50 bg-card/30 p-4">
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-2 z-10"
+          className="absolute right-2 top-2 z-10 hover:bg-destructive/10 hover:text-destructive"
           onClick={clearImage}
           disabled={isAnalyzing}
         >
@@ -78,10 +78,10 @@ export function ImageUploader({ onImageSelect, isAnalyzing }: ImageUploaderProps
 
   return (
     <div
-      className={`relative flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${
+      className={`relative flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-all ${
         dragActive
-          ? 'border-primary bg-primary/10'
-          : 'border-border bg-card/50 hover:border-primary/50 hover:bg-card'
+          ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
+          : 'border-border/50 bg-card/30 hover:border-primary/50 hover:bg-card/50'
       }`}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}
@@ -96,7 +96,7 @@ export function ImageUploader({ onImageSelect, isAnalyzing }: ImageUploaderProps
         disabled={isAnalyzing}
       />
       <div className="flex flex-col items-center gap-4 text-center">
-        <div className="rounded-full bg-primary/20 p-4">
+        <div className={`rounded-full p-4 transition-all ${dragActive ? 'bg-primary/30 scale-110' : 'bg-primary/20'}`}>
           {dragActive ? (
             <ImageIcon className="h-8 w-8 text-primary" />
           ) : (
@@ -111,7 +111,7 @@ export function ImageUploader({ onImageSelect, isAnalyzing }: ImageUploaderProps
             or click to browse files
           </p>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="rounded-full bg-muted/30 px-3 py-1 text-xs text-muted-foreground">
           Supports: JPG, PNG, WebP
         </p>
       </div>
