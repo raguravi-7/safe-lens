@@ -15,7 +15,7 @@ export function Header({ isConnected, isAnalyzing }: HeaderProps) {
               <Shield className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">SafeGuard AI</h1>
+              <h1 className="text-xl font-bold text-foreground">CITY SHIELD</h1>
               <p className="text-xs text-muted-foreground">Real-time Safety Detection</p>
             </div>
           </div>
