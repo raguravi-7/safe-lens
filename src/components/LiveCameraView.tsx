@@ -85,15 +85,18 @@ export function LiveCameraView({
     draw();
   }, [isStreaming, detections, videoRef]);
 
-  // Start/stop capture loop
+  // Start/stop capture loop - using 3 second interval to avoid rate limits
+  // Only capture when not already analyzing
   useEffect(() => {
-    if (isActive && isStreaming) {
+    if (isActive && isStreaming && !isAnalyzing) {
       intervalRef.current = window.setInterval(() => {
-        const frame = captureFrame();
-        if (frame) {
-          onFrameCapture(frame);
+        if (!isAnalyzing) {
+          const frame = captureFrame();
+          if (frame) {
+            onFrameCapture(frame);
+          }
         }
-      }, 500); // Every 0.5 seconds
+      }, 3000); // Every 3 seconds to avoid rate limits
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -104,7 +107,7 @@ export function LiveCameraView({
         clearInterval(intervalRef.current);
       }
     };
-  }, [isActive, isStreaming, captureFrame, onFrameCapture]);
+  }, [isActive, isStreaming, isAnalyzing, captureFrame, onFrameCapture]);
 
   const handleStart = useCallback(async () => {
     await startCamera();
