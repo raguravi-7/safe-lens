@@ -25,9 +25,20 @@ serve(async (req) => {
   try {
     const { image } = await req.json();
     
-    if (!image) {
+    // Validate image data URL - must have actual base64 content
+    if (!image || typeof image !== 'string') {
       return new Response(
         JSON.stringify({ error: "No image provided" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check if it's a valid data URL with actual content
+    const dataUrlMatch = image.match(/^data:image\/[a-z]+;base64,(.+)$/i);
+    if (!dataUrlMatch || !dataUrlMatch[1] || dataUrlMatch[1].length < 100) {
+      console.error("Invalid image data URL - too short or malformed");
+      return new Response(
+        JSON.stringify({ error: "Invalid image data - please try again", detections: [] }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
