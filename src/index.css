@@ -1,73 +1,92 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* CITY SHIELD - Cyberpunk Security Theme */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 220 20% 97%;
+    --foreground: 220 30% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 30% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --popover-foreground: 220 30% 10%;
+    --primary: 200 100% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 92%;
+    --secondary-foreground: 220 30% 20%;
+    --muted: 220 15% 92%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 160 80% 40%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 85% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 200 100% 45%;
+    --radius: 0.75rem;
+    
+    /* Custom colors */
+    --success: 160 80% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 40 95% 50%;
+    --warning-foreground: 0 0% 10%;
+    --info: 200 100% 50%;
+    --info-foreground: 0 0% 100%;
+    --critical: 350 90% 55%;
+    --critical-foreground: 0 0% 100%;
+    
+    /* Gradient stops */
+    --gradient-start: 200 100% 50%;
+    --gradient-end: 280 100% 60%;
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 55%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 50.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217.2 91.2% 59.8%;
-    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 224.3 76.3% 48%;
+    --background: 220 25% 6%;
+    --foreground: 210 40% 96%;
+    --card: 220 25% 9%;
+    --card-foreground: 210 40% 96%;
+    --popover: 220 25% 9%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 195 100% 50%;
+    --primary-foreground: 220 25% 6%;
+    --secondary: 220 20% 14%;
+    --secondary-foreground: 210 40% 90%;
+    --muted: 220 20% 14%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 160 85% 45%;
+    --accent-foreground: 220 25% 6%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 16%;
+    --input: 220 20% 16%;
+    --ring: 195 100% 50%;
+    
+    /* Custom dark colors */
+    --success: 160 85% 45%;
+    --success-foreground: 220 25% 6%;
+    --warning: 42 100% 55%;
+    --warning-foreground: 220 25% 6%;
+    --info: 195 100% 50%;
+    --info-foreground: 220 25% 6%;
+    --critical: 350 85% 60%;
+    --critical-foreground: 0 0% 100%;
+    
+    /* Gradient stops */
+    --gradient-start: 195 100% 50%;
+    --gradient-end: 280 90% 65%;
+    
+    --sidebar-background: 220 25% 8%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 195 100% 50%;
+    --sidebar-primary-foreground: 220 25% 6%;
+    --sidebar-accent: 220 20% 14%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 220 20% 16%;
+    --sidebar-ring: 195 100% 50%;
   }
 }
 
@@ -81,8 +100,12 @@ All colors MUST be HSL.
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
@@ -97,7 +120,7 @@ All colors MUST be HSL.
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted));
+  background: hsl(var(--border));
   border-radius: 4px;
 }
 
@@ -105,29 +128,123 @@ All colors MUST be HSL.
   background: hsl(var(--muted-foreground));
 }
 
+/* Gradient text utility */
+.text-gradient {
+  background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient background utility */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
+}
+
+/* Glass effect */
+.glass {
+  background: hsl(var(--card) / 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
 /* Smooth animations */
 @keyframes pulse-alert {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.7;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.5);
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
   }
 }
 
 .animate-pulse-alert {
-  animation: pulse-alert 1s ease-in-out infinite;
+  animation: pulse-alert 1.5s ease-in-out infinite;
 }
 
-/* Detection box glow effect */
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Detection box glow effects with enhanced colors */
 .detection-glow-critical {
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 25px hsl(var(--critical) / 0.6), 
+              0 0 50px hsl(var(--critical) / 0.3),
+              inset 0 0 15px hsl(var(--critical) / 0.1);
 }
 
 .detection-glow-warning {
-  box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+  box-shadow: 0 0 25px hsl(var(--warning) / 0.6), 
+              0 0 50px hsl(var(--warning) / 0.3),
+              inset 0 0 15px hsl(var(--warning) / 0.1);
 }
 
 .detection-glow-info {
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+  box-shadow: 0 0 25px hsl(var(--success) / 0.6), 
+              0 0 50px hsl(var(--success) / 0.3),
+              inset 0 0 15px hsl(var(--success) / 0.1);
+}
+
+/* Status indicator dots */
+.status-dot {
+  @apply w-2 h-2 rounded-full;
+}
+
+.status-dot-online {
+  @apply bg-emerald-500;
+  box-shadow: 0 0 8px hsl(160 85% 45% / 0.8);
+}
+
+.status-dot-offline {
+  @apply bg-muted-foreground;
+}
+
+.status-dot-warning {
+  @apply bg-amber-500;
+  box-shadow: 0 0 8px hsl(42 100% 55% / 0.8);
+}
+
+.status-dot-critical {
+  @apply bg-rose-500;
+  box-shadow: 0 0 8px hsl(350 85% 60% / 0.8);
+  animation: pulse-alert 1s ease-in-out infinite;
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-300;
+}
+
+.card-hover:hover {
+  @apply border-primary/50;
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+}
+
+/* Button glow on hover */
+.btn-glow {
+  @apply transition-all duration-300;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
 }
