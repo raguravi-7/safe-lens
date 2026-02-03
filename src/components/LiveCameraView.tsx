@@ -151,23 +151,30 @@ export function LiveCameraView({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {isStreaming ? (
-            <Video className="h-5 w-5 text-emerald-500" />
-          ) : (
-            <VideoOff className="h-5 w-5 text-muted-foreground" />
-          )}
-          <span className="font-medium text-foreground">
-            {isStreaming ? 'Camera Active' : 'Camera Off'}
-          </span>
-          {isActive && isAnalyzing && (
-            <span className="ml-2 animate-pulse text-sm text-primary">● Detecting</span>
-          )}
+        <div className="flex items-center gap-3">
+          <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${isStreaming ? 'bg-success/20' : 'bg-muted/50'}`}>
+            {isStreaming ? (
+              <Video className="h-5 w-5 text-success" />
+            ) : (
+              <VideoOff className="h-5 w-5 text-muted-foreground" />
+            )}
+          </div>
+          <div>
+            <span className="font-medium text-foreground">
+              {isStreaming ? 'Camera Active' : 'Camera Off'}
+            </span>
+            {isActive && isAnalyzing && (
+              <div className="flex items-center gap-1.5 text-sm text-primary">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
+                Detecting...
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2">
           {!isStreaming ? (
-            <Button onClick={handleStart} className="gap-2">
+            <Button onClick={handleStart} className="gap-2 bg-primary hover:bg-primary/90">
               <Play className="h-4 w-4" />
               Start Camera
             </Button>
@@ -181,13 +188,13 @@ export function LiveCameraView({
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-lg bg-destructive/20 p-3 text-destructive">
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-destructive">
           <AlertCircle className="h-5 w-5" />
           <p className="text-sm">{error}</p>
         </div>
       )}
 
-      <div className="relative aspect-video overflow-hidden rounded-lg border border-border bg-black">
+      <div className="relative aspect-video overflow-hidden rounded-xl border border-border/50 bg-black/80">
         <video
           ref={videoRef}
           autoPlay
@@ -200,11 +207,19 @@ export function LiveCameraView({
           className="h-full w-full object-contain"
         />
         
+        {/* Scan line effect when active */}
+        {isStreaming && isAnalyzing && (
+          <div className="scan-line pointer-events-none absolute inset-0" />
+        )}
+        
         {!isStreaming && (
-          <div className="absolute inset-0 flex items-center justify-center bg-card/80">
+          <div className="glass absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <VideoOff className="mx-auto h-12 w-12 text-muted-foreground" />
-              <p className="mt-2 text-muted-foreground">Camera not active</p>
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
+                <VideoOff className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-muted-foreground">Camera not active</p>
+              <p className="text-sm text-muted-foreground/60">Click "Start Camera" to begin</p>
             </div>
           </div>
         )}
@@ -215,7 +230,7 @@ export function LiveCameraView({
             {Object.entries(objectCounts).map(([label, count]) => (
               <div
                 key={label}
-                className="rounded-full bg-black/70 px-2.5 py-1 text-xs font-medium text-white"
+                className="glass rounded-full border border-border/30 px-2.5 py-1 text-xs font-medium text-foreground"
               >
                 {label}: {count}
               </div>
