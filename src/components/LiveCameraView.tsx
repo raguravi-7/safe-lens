@@ -22,8 +22,16 @@ export function LiveCameraView({
 }: LiveCameraViewProps) {
   const { videoRef, isStreaming, error, startCamera, stopCamera, captureFrame } = useWebcam();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const intervalRef = useRef<number | null>(null);
+  const timeoutRef = useRef<number | null>(null);
+  const analyzingRef = useRef(false);
+  const inFlightRef = useRef(false);
   const [objectCounts, setObjectCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    analyzingRef.current = isAnalyzing;
+    // When the parent says analysis finished, release the local lock too.
+    if (!isAnalyzing) inFlightRef.current = false;
+  }, [isAnalyzing]);
 
   // Count objects by category
   useEffect(() => {
@@ -85,29 +93,50 @@ export function LiveCameraView({
     draw();
   }, [isStreaming, detections, videoRef]);
 
-  // Start/stop capture loop - using 3 second interval to avoid rate limits
-  // Only capture when not already analyzing
+  // Start/stop capture loop
+  // - Uses setTimeout (not setInterval) to avoid overlap.
+  // - Uses refs to avoid stale closures on isAnalyzing.
+  // - Uses a local single-flight lock to prevent rapid double-submits.
   useEffect(() => {
-    if (isActive && isStreaming && !isAnalyzing) {
-      intervalRef.current = window.setInterval(() => {
-        if (!isAnalyzing) {
-          const frame = captureFrame();
-          if (frame) {
-            onFrameCapture(frame);
-          }
-        }
-      }, 3000); // Every 3 seconds to avoid rate limits
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+    const clearTimer = () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
-  }, [isActive, isStreaming, isAnalyzing, captureFrame, onFrameCapture]);
+
+    const tick = () => {
+      // Stop conditions
+      if (!isActive || !isStreaming) {
+        clearTimer();
+        return;
+      }
+
+      // If analysis is still running, poll soon (don't enqueue new work)
+      if (analyzingRef.current || inFlightRef.current) {
+        timeoutRef.current = window.setTimeout(tick, 250);
+        return;
+      }
+
+      const frame = captureFrame();
+      if (frame) {
+        // Lock immediately (parent state update can lag by a render)
+        inFlightRef.current = true;
+        onFrameCapture(frame);
+      }
+
+      // Next scheduled capture (conservative to avoid provider rate limits)
+      timeoutRef.current = window.setTimeout(tick, 3000);
+    };
+
+    clearTimer();
+
+    if (isActive && isStreaming) {
+      tick();
+    }
+
+    return clearTimer;
+  }, [isActive, isStreaming, captureFrame, onFrameCapture]);
 
   const handleStart = useCallback(async () => {
     await startCamera();
