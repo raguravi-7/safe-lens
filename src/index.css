@@ -4,92 +4,89 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CITY SHIELD - Cyberpunk Security Theme */
+/* CITY SHIELD - Vivid Cyberpunk Security Theme */
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 30% 10%;
+    --background: 230 25% 95%;
+    --foreground: 230 30% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 220 30% 10%;
+    --card-foreground: 230 30% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 30% 10%;
-    --primary: 200 100% 45%;
+    --popover-foreground: 230 30% 10%;
+    --primary: 210 100% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 220 30% 20%;
-    --muted: 220 15% 92%;
-    --muted-foreground: 220 10% 45%;
-    --accent: 160 80% 40%;
+    --secondary: 270 60% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 230 15% 90%;
+    --muted-foreground: 230 10% 45%;
+    --accent: 170 90% 40%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 85% 55%;
+    --destructive: 0 90% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 200 100% 45%;
+    --border: 230 15% 85%;
+    --input: 230 15% 85%;
+    --ring: 210 100% 50%;
     --radius: 0.75rem;
-    
-    /* Custom colors */
-    --success: 160 80% 40%;
+
+    --success: 155 85% 40%;
     --success-foreground: 0 0% 100%;
-    --warning: 40 95% 50%;
+    --warning: 38 100% 50%;
     --warning-foreground: 0 0% 10%;
-    --info: 200 100% 50%;
+    --info: 210 100% 55%;
     --info-foreground: 0 0% 100%;
-    --critical: 350 90% 55%;
+    --critical: 345 95% 55%;
     --critical-foreground: 0 0% 100%;
-    
-    /* Gradient stops */
-    --gradient-start: 200 100% 50%;
-    --gradient-end: 280 100% 60%;
+
+    --gradient-start: 210 100% 55%;
+    --gradient-mid: 270 90% 60%;
+    --gradient-end: 330 90% 55%;
   }
 
   .dark {
-    --background: 220 25% 6%;
-    --foreground: 210 40% 96%;
-    --card: 220 25% 9%;
-    --card-foreground: 210 40% 96%;
-    --popover: 220 25% 9%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 195 100% 50%;
-    --primary-foreground: 220 25% 6%;
-    --secondary: 220 20% 14%;
-    --secondary-foreground: 210 40% 90%;
-    --muted: 220 20% 14%;
+    --background: 230 30% 5%;
+    --foreground: 210 50% 96%;
+    --card: 230 28% 8%;
+    --card-foreground: 210 50% 96%;
+    --popover: 230 28% 8%;
+    --popover-foreground: 210 50% 96%;
+    --primary: 195 100% 55%;
+    --primary-foreground: 230 30% 5%;
+    --secondary: 275 80% 65%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 230 20% 14%;
     --muted-foreground: 215 20% 55%;
-    --accent: 160 85% 45%;
-    --accent-foreground: 220 25% 6%;
-    --destructive: 0 75% 55%;
+    --accent: 165 90% 50%;
+    --accent-foreground: 230 30% 5%;
+    --destructive: 0 80% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 20% 16%;
-    --input: 220 20% 16%;
-    --ring: 195 100% 50%;
-    
-    /* Custom dark colors */
-    --success: 160 85% 45%;
-    --success-foreground: 220 25% 6%;
-    --warning: 42 100% 55%;
-    --warning-foreground: 220 25% 6%;
-    --info: 195 100% 50%;
-    --info-foreground: 220 25% 6%;
-    --critical: 350 85% 60%;
+    --border: 230 20% 16%;
+    --input: 230 20% 16%;
+    --ring: 195 100% 55%;
+
+    --success: 155 90% 50%;
+    --success-foreground: 230 30% 5%;
+    --warning: 40 100% 60%;
+    --warning-foreground: 230 30% 5%;
+    --info: 195 100% 55%;
+    --info-foreground: 230 30% 5%;
+    --critical: 345 90% 60%;
     --critical-foreground: 0 0% 100%;
-    
-    /* Gradient stops */
-    --gradient-start: 195 100% 50%;
-    --gradient-end: 280 90% 65%;
-    
-    --sidebar-background: 220 25% 8%;
-    --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 195 100% 50%;
-    --sidebar-primary-foreground: 220 25% 6%;
-    --sidebar-accent: 220 20% 14%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 220 20% 16%;
-    --sidebar-ring: 195 100% 50%;
+
+    --gradient-start: 195 100% 55%;
+    --gradient-mid: 275 90% 65%;
+    --gradient-end: 340 90% 60%;
+
+    --sidebar-background: 230 28% 7%;
+    --sidebar-foreground: 210 50% 96%;
+    --sidebar-primary: 195 100% 55%;
+    --sidebar-primary-foreground: 230 30% 5%;
+    --sidebar-accent: 230 20% 14%;
+    --sidebar-accent-foreground: 210 50% 96%;
+    --sidebar-border: 230 20% 16%;
+    --sidebar-ring: 195 100% 55%;
   }
 }
-
 @layer base {
   * {
     @apply border-border;
@@ -130,7 +127,7 @@
 
 /* Gradient text utility */
 .text-gradient {
-  background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
+  background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-mid)), hsl(var(--gradient-end)));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -138,14 +135,32 @@
 
 /* Gradient background utility */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
+  background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-mid)), hsl(var(--gradient-end)));
 }
 
 /* Glass effect */
 .glass {
-  background: hsl(var(--card) / 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid hsl(var(--border) / 0.5);
+  background: hsl(var(--card) / 0.65);
+  backdrop-filter: blur(16px);
+  border: 1px solid hsl(var(--border) / 0.4);
+}
+
+/* Colorful border gradient */
+.border-gradient {
+  border-image: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-mid)), hsl(var(--gradient-end))) 1;
+}
+
+/* Rainbow shimmer animation */
+@keyframes shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.bg-shimmer {
+  background: linear-gradient(270deg, hsl(var(--gradient-start)), hsl(var(--gradient-mid)), hsl(var(--gradient-end)), hsl(var(--gradient-start)));
+  background-size: 300% 100%;
+  animation: shimmer 4s ease infinite;
 }
 
 /* Smooth animations */
@@ -162,10 +177,10 @@
 
 @keyframes glow {
   0%, 100% {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 20px hsl(var(--gradient-start) / 0.3), 0 0 40px hsl(var(--gradient-mid) / 0.15);
   }
   50% {
-    box-shadow: 0 0 40px hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 40px hsl(var(--gradient-start) / 0.5), 0 0 60px hsl(var(--gradient-end) / 0.25);
   }
 }
 

@@ -118,18 +118,18 @@ Total entries: ${history.length}
             className="flex-1"
           >
             <TabsList className="glass grid w-full max-w-md grid-cols-2 border border-border/50">
-              <TabsTrigger value="image" className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+              <TabsTrigger value="image" className="gap-2 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
                 <Image className="h-4 w-4" />
                 Image Analysis
               </TabsTrigger>
-              <TabsTrigger value="camera" className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+              <TabsTrigger value="camera" className="gap-2 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
                 <Video className="h-4 w-4" />
                 Live Camera
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="image" className="mt-4">
-              <div className="glass rounded-xl border border-border/50 p-6">
+              <div className="glass rounded-xl border border-border/30 p-6 shadow-lg shadow-primary/5">
                 <ImageAnalysisView
                   onAnalyze={handleAnalyze}
                   detections={detections}
@@ -139,7 +139,7 @@ Total entries: ${history.length}
             </TabsContent>
 
             <TabsContent value="camera" className="mt-4">
-              <div className="glass rounded-xl border border-border/50 p-6">
+              <div className="glass rounded-xl border border-border/30 p-6 shadow-lg shadow-secondary/5">
                 <LiveCameraView
                   onFrameCapture={handleCameraFrame}
                   detections={detections}
