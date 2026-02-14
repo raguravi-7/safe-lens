@@ -106,7 +106,16 @@ Total entries: ${history.length}
   }, [history, getDetectionStats]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="relative flex min-h-screen flex-col">
+      {/* Floating orbs background */}
+      <div className="floating-orbs">
+        <div className="floating-orb floating-orb-1" />
+        <div className="floating-orb floating-orb-2" />
+        <div className="floating-orb floating-orb-3" />
+        <div className="floating-orb floating-orb-4" />
+        <div className="floating-orb floating-orb-5" />
+      </div>
+
       <Header isConnected={isConnected} isAnalyzing={isAnalyzing} />
       
       <main className="flex flex-1 gap-4 p-4">

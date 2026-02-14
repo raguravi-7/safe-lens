@@ -166,7 +166,89 @@
   animation: shimmer 4s ease infinite;
 }
 
-/* Smooth animations */
+/* Floating orbs */
+@keyframes float-orb-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(60px, -80px) scale(1.1); }
+  50% { transform: translate(-40px, -150px) scale(0.9); }
+  75% { transform: translate(80px, -60px) scale(1.05); }
+}
+
+@keyframes float-orb-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-70px, 60px) scale(0.95); }
+  50% { transform: translate(50px, 120px) scale(1.1); }
+  75% { transform: translate(-90px, 40px) scale(1); }
+}
+
+@keyframes float-orb-3 {
+  0%, 100% { transform: translate(0, 0) scale(1.05); }
+  33% { transform: translate(100px, -40px) scale(0.9); }
+  66% { transform: translate(-60px, 80px) scale(1.1); }
+}
+
+.floating-orbs {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.floating-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+}
+
+.floating-orb-1 {
+  width: 350px;
+  height: 350px;
+  background: hsl(var(--gradient-start));
+  top: 10%;
+  left: 15%;
+  animation: float-orb-1 18s ease-in-out infinite;
+}
+
+.floating-orb-2 {
+  width: 300px;
+  height: 300px;
+  background: hsl(var(--gradient-mid));
+  top: 50%;
+  right: 10%;
+  animation: float-orb-2 22s ease-in-out infinite;
+}
+
+.floating-orb-3 {
+  width: 250px;
+  height: 250px;
+  background: hsl(var(--gradient-end));
+  bottom: 15%;
+  left: 40%;
+  animation: float-orb-3 15s ease-in-out infinite;
+}
+
+.floating-orb-4 {
+  width: 200px;
+  height: 200px;
+  background: hsl(var(--accent));
+  top: 30%;
+  right: 35%;
+  animation: float-orb-1 25s ease-in-out infinite reverse;
+  opacity: 0.2;
+}
+
+.floating-orb-5 {
+  width: 180px;
+  height: 180px;
+  background: hsl(var(--success));
+  bottom: 30%;
+  left: 10%;
+  animation: float-orb-2 20s ease-in-out infinite reverse;
+  opacity: 0.15;
+}
+
 @keyframes pulse-alert {
   0%, 100% {
     opacity: 1;
