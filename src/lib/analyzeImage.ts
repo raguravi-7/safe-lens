@@ -65,7 +65,7 @@ function createEmptyResult(): DetectionResult {
   };
 }
 
-export async function analyzeImage(imageBase64: string): Promise<DetectionResult> {
+export async function analyzeImage(imageBase64: string, mode: 'image' | 'camera' = 'image'): Promise<DetectionResult> {
   const now = Date.now();
   if (now < nextAnalyzeAllowedAt) {
     console.warn(`Skipping analysis during cooldown (${nextAnalyzeAllowedAt - now}ms remaining)`);
