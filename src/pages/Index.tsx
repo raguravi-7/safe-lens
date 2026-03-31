@@ -23,16 +23,14 @@ export default function Index() {
   const { playAlertSound } = useAlertSound();
   const { history, addEntry, clearHistory, exportToJSON, getDetectionStats } = useDetectionHistory();
 
-  const handleAnalyze = useCallback(async (imageBase64: string) => {
+  const handleAnalyze = useCallback(async (imageBase64: string, mode: 'image' | 'camera' = 'image') => {
     setIsAnalyzing(true);
     try {
-      const result = await analyzeImage(imageBase64);
+      const result = await analyzeImage(imageBase64, mode);
       setDetections(result.detections);
       
-      // Add to history
-      addEntry(result, activeTab === 'image' ? 'image' : 'camera', imageBase64);
+      addEntry(result, mode, imageBase64);
 
-      // Play alert sounds for critical/warning detections
       const hasCritical = result.detections.some(d => d.severity === 'critical');
       const hasWarning = result.detections.some(d => d.severity === 'warning');
       
@@ -57,10 +55,10 @@ export default function Index() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [activeTab, addEntry, playAlertSound]);
+  }, [addEntry, playAlertSound]);
 
   const handleCameraFrame = useCallback(async (imageBase64: string) => {
-    await handleAnalyze(imageBase64);
+    await handleAnalyze(imageBase64, 'camera');
   }, [handleAnalyze]);
 
   const handleClearAlerts = useCallback(() => {

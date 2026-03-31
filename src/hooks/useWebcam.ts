@@ -57,14 +57,17 @@ export function useWebcam(): UseWebcamReturn {
     if (!video.videoWidth || !video.videoHeight) return null;
 
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Downscale for live mode to reduce payload and speed up AI processing
+    const maxDim = 640;
+    const scale = Math.min(1, maxDim / Math.max(video.videoWidth, video.videoHeight));
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
     
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
     
-    ctx.drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
     // Guard against empty or malformed captures
     if (!dataUrl || dataUrl.length < 100 || dataUrl === 'data:,') return null;
     return dataUrl;
