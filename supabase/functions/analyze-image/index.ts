@@ -17,26 +17,22 @@ interface Detection {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { image } = await req.json();
-    
-    // Validate image data URL - must have actual base64 content
-    if (!image || typeof image !== 'string') {
+    const { image, mode } = await req.json();
+
+    if (!image || typeof image !== "string") {
       return new Response(
         JSON.stringify({ error: "No image provided" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Check if it's a valid data URL with actual content
     const dataUrlMatch = image.match(/^data:image\/[a-z]+;base64,(.+)$/i);
     if (!dataUrlMatch || !dataUrlMatch[1] || dataUrlMatch[1].length < 100) {
-      console.error("Invalid image data URL - too short or malformed");
       return new Response(
         JSON.stringify({ error: "Invalid image data - please try again", detections: [] }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -45,14 +41,47 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY is not configured");
       return new Response(
         JSON.stringify({ error: "AI service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("Analyzing image for safety detections...");
+    // Use faster model for live camera, more accurate model for uploaded images
+    const isLive = mode === "camera";
+    const model = isLive ? "google/gemini-2.5-flash-lite" : "google/gemini-3-flash-preview";
+
+    console.log(`Analyzing image (mode: ${mode || "image"}, model: ${model})...`);
+
+    const systemPrompt = `You are a precision safety & surveillance detection AI. Analyze the image and detect ALL instances of these categories:
+
+CRITICAL THREATS (report immediately with high priority):
+- fight: Two or more people physically fighting, punching, kicking, wrestling, or in aggressive physical contact
+- weapon_gun: Any firearm visible — pistol, rifle, shotgun, assault weapon, even partially concealed
+- weapon_knife: Any blade weapon — knife, machete, sword, box cutter, sharp object held threateningly
+
+HIGH PRIORITY:
+- accident: Vehicle collision, person fallen/injured, structural collapse, any accident scene
+- fainting: Person lying on ground unconscious, collapsed, unresponsive, or in medical distress
+
+MODERATE:
+- bad_behavior: Vandalism, trespassing, theft, suspicious loitering, aggressive gestures, property damage
+
+STANDARD:
+- person: Every individual human visible (count each person separately)
+- animal: Any animal — dog, cat, bird, wildlife
+
+DETECTION RULES:
+1. Report EVERY person individually with their own bounding box
+2. One person can have multiple labels (e.g., a person holding a knife = both "person" and "weapon_knife")
+3. Bounding boxes must tightly wrap the detected object/person using normalized 0.0-1.0 coordinates
+4. Confidence must reflect actual certainty: only use >0.8 when very clear, use 0.3-0.6 for partial/unclear
+5. Never hallucinate detections — only report what is clearly visible
+6. For groups, detect each individual separately`;
+
+    const userPrompt = isLive
+      ? "Analyze this live camera frame. Focus on detecting people and any immediate safety threats. Be fast and precise."
+      : "Thoroughly analyze this image for all safety-related detections. Identify every person, animal, weapon, fight, accident, or suspicious behavior. Be comprehensive and accurate with bounding boxes.";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -61,96 +90,64 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model,
         messages: [
-          {
-            role: "system",
-            content: `You are a safety detection AI. Analyze images for dangerous situations and objects.
-
-Detect these categories:
-- fight: Physical altercation between people
-- weapon_gun: Any firearm (pistol, rifle, etc.)
-- weapon_knife: Knives, blades, or sharp weapons
-- accident: Car crashes, falls, injuries
-- fainting: Person collapsed, unconscious
-- bad_behavior: Vandalism, suspicious activity
-- person: Any human present
-- animal: Any animal present
-
-For each detection, provide:
-- category: The detection type
-- confidence: 0.0 to 1.0 confidence score
-- bounding_box: Normalized coordinates (0.0 to 1.0) with x_min, y_min, x_max, y_max
-
-Be thorough but accurate. Only report what you can clearly see.`
-          },
+          { role: "system", content: systemPrompt },
           {
             role: "user",
             content: [
-              {
-                type: "text",
-                text: "Analyze this image for safety-related detections. Return all detected objects, people, dangerous situations, and potential threats."
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: image
-                }
-              }
-            ]
-          }
+              { type: "text", text: userPrompt },
+              { type: "image_url", image_url: { url: image } },
+            ],
+          },
         ],
         tools: [
           {
             type: "function",
             function: {
               name: "report_detections",
-              description: "Report all detected objects and situations in the image",
+              description: "Report all detected objects, people, threats, and situations found in the image with precise bounding boxes",
               parameters: {
                 type: "object",
                 properties: {
                   detections: {
                     type: "array",
+                    description: "Array of all detections found in the image. Each person should be reported individually.",
                     items: {
                       type: "object",
                       properties: {
                         category: {
                           type: "string",
-                          enum: ["fight", "weapon_gun", "weapon_knife", "accident", "fainting", "bad_behavior", "person", "animal"]
+                          enum: ["fight", "weapon_gun", "weapon_knife", "accident", "fainting", "bad_behavior", "person", "animal"],
                         },
                         confidence: {
                           type: "number",
-                          description: "Confidence score between 0.0 and 1.0"
+                          description: "Confidence score 0.0-1.0. Use >0.8 only when very clear.",
                         },
                         bounding_box: {
                           type: "object",
+                          description: "Tight bounding box in normalized 0.0-1.0 coordinates",
                           properties: {
-                            x_min: { type: "number", description: "Left edge (0.0-1.0)" },
-                            y_min: { type: "number", description: "Top edge (0.0-1.0)" },
-                            x_max: { type: "number", description: "Right edge (0.0-1.0)" },
-                            y_max: { type: "number", description: "Bottom edge (0.0-1.0)" }
+                            x_min: { type: "number", description: "Left edge 0.0-1.0" },
+                            y_min: { type: "number", description: "Top edge 0.0-1.0" },
+                            x_max: { type: "number", description: "Right edge 0.0-1.0" },
+                            y_max: { type: "number", description: "Bottom edge 0.0-1.0" },
                           },
-                          required: ["x_min", "y_min", "x_max", "y_max"]
-                        }
+                          required: ["x_min", "y_min", "x_max", "y_max"],
+                        },
                       },
-                      required: ["category", "confidence", "bounding_box"]
-                    }
+                      required: ["category", "confidence", "bounding_box"],
+                    },
                   },
-                  image_width: {
-                    type: "number",
-                    description: "Estimated image width in pixels"
-                  },
-                  image_height: {
-                    type: "number",
-                    description: "Estimated image height in pixels"
-                  }
+                  image_width: { type: "number", description: "Estimated width in pixels" },
+                  image_height: { type: "number", description: "Estimated height in pixels" },
                 },
-                required: ["detections"]
-              }
-            }
-          }
+                required: ["detections"],
+              },
+            },
+          },
         ],
-        tool_choice: { type: "function", function: { name: "report_detections" } }
+        tool_choice: { type: "function", function: { name: "report_detections" } },
       }),
     });
 
@@ -176,9 +173,7 @@ Be thorough but accurate. Only report what you can clearly see.`
     }
 
     const data = await response.json();
-    console.log("AI response received:", JSON.stringify(data).substring(0, 500));
 
-    // Extract tool call result
     let detections: Detection[] = [];
     let imageWidth = 1280;
     let imageHeight = 720;
@@ -186,7 +181,20 @@ Be thorough but accurate. Only report what you can clearly see.`
     if (data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments) {
       try {
         const args = JSON.parse(data.choices[0].message.tool_calls[0].function.arguments);
-        detections = args.detections || [];
+        detections = (args.detections || []).filter((d: Detection) => {
+          // Filter out invalid detections
+          if (!d.category || typeof d.confidence !== "number") return false;
+          if (d.confidence < 0.15) return false; // Drop very low confidence noise
+          const bb = d.bounding_box;
+          if (!bb || bb.x_min >= bb.x_max || bb.y_min >= bb.y_max) return false;
+          if (bb.x_min < 0 || bb.y_min < 0 || bb.x_max > 1.05 || bb.y_max > 1.05) return false;
+          // Clamp to valid range
+          d.bounding_box.x_min = Math.max(0, Math.min(1, bb.x_min));
+          d.bounding_box.y_min = Math.max(0, Math.min(1, bb.y_min));
+          d.bounding_box.x_max = Math.max(0, Math.min(1, bb.x_max));
+          d.bounding_box.y_max = Math.max(0, Math.min(1, bb.y_max));
+          return true;
+        });
         imageWidth = args.image_width || 1280;
         imageHeight = args.image_height || 720;
       } catch (parseError) {
@@ -197,11 +205,7 @@ Be thorough but accurate. Only report what you can clearly see.`
     console.log(`Detected ${detections.length} objects`);
 
     return new Response(
-      JSON.stringify({
-        detections,
-        image_width: imageWidth,
-        image_height: imageHeight,
-      }),
+      JSON.stringify({ detections, image_width: imageWidth, image_height: imageHeight }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
