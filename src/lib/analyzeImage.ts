@@ -53,42 +53,59 @@ function mapCategory(category: string): DetectionCategory {
   return categoryMap[normalized] || 'person';
 }
 
+const RATE_LIMIT_COOLDOWN_MS = 15000;
+let nextAnalyzeAllowedAt = 0;
+
+function createEmptyResult(): DetectionResult {
+  return {
+    detections: [],
+    imageWidth: 1280,
+    imageHeight: 720,
+    analyzedAt: new Date(),
+  };
+}
+
 export async function analyzeImage(imageBase64: string): Promise<DetectionResult> {
-  const maxRetries = 2;
-  
+  const now = Date.now();
+  if (now < nextAnalyzeAllowedAt) {
+    console.warn(`Skipping analysis during cooldown (${nextAnalyzeAllowedAt - now}ms remaining)`);
+    return createEmptyResult();
+  }
+
+  const maxRetries = 1;
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const { data, error } = await supabase.functions.invoke('analyze-image', {
         body: { image: imageBase64 },
       });
 
-      // Handle rate limit with retry
       if (error) {
         const errorMsg = error.message || '';
-        if ((errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) && attempt < maxRetries) {
-          const delay = (attempt + 1) * 3000;
-          console.warn(`Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
-          await new Promise(r => setTimeout(r, delay));
-          continue;
+        const isRateLimited = errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit');
+
+        if (isRateLimited) {
+          nextAnalyzeAllowedAt = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+          console.warn(`Rate limited by AI service. Cooling down for ${RATE_LIMIT_COOLDOWN_MS}ms.`);
+          return createEmptyResult();
         }
+
         console.error('Analysis error:', error);
         throw new Error(errorMsg || 'Failed to analyze image');
       }
 
-      // Check if response itself indicates rate limit
-      if (data?.error && data.error.includes('Rate limit') && attempt < maxRetries) {
-        const delay = (attempt + 1) * 3000;
-        console.warn(`Rate limited (response), retrying in ${delay}ms`);
-        await new Promise(r => setTimeout(r, delay));
-        continue;
+      if (data?.error && data.error.includes('Rate limit')) {
+        nextAnalyzeAllowedAt = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+        console.warn(`Rate limit response received. Cooling down for ${RATE_LIMIT_COOLDOWN_MS}ms.`);
+        return createEmptyResult();
       }
 
       const response = data as AnalyzeResponse;
-      
+
       const detections: Detection[] = (response.detections || []).map((d, index) => {
         const category = mapCategory(d.category);
         const config = CATEGORY_CONFIG[category];
-        
+
         const boundingBox: BoundingBox = {
           x: d.bounding_box.x_min,
           y: d.bounding_box.y_min,
@@ -113,22 +130,26 @@ export async function analyzeImage(imageBase64: string): Promise<DetectionResult
         analyzedAt: new Date(),
       };
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const isRateLimited = message.includes('429') || message.toLowerCase().includes('rate limit');
+
+      if (isRateLimited) {
+        nextAnalyzeAllowedAt = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+        console.warn(`Rate limited while analyzing. Cooling down for ${RATE_LIMIT_COOLDOWN_MS}ms.`);
+        return createEmptyResult();
+      }
+
       if (attempt < maxRetries) {
-        const delay = (attempt + 1) * 3000;
-        console.warn(`Error, retrying in ${delay}ms:`, err);
+        const delay = 2000;
+        console.warn(`Transient analysis error, retrying in ${delay}ms:`, err);
         await new Promise(r => setTimeout(r, delay));
         continue;
       }
+
       console.error('Failed to analyze image after retries:', err);
-      // Return empty result instead of crashing
-      return {
-        detections: [],
-        imageWidth: 1280,
-        imageHeight: 720,
-        analyzedAt: new Date(),
-      };
+      return createEmptyResult();
     }
   }
 
-  return { detections: [], imageWidth: 1280, imageHeight: 720, analyzedAt: new Date() };
+  return createEmptyResult();
 }
