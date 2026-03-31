@@ -60,9 +60,8 @@ export default function Index() {
   }, [activeTab, addEntry, playAlertSound]);
 
   const handleCameraFrame = useCallback(async (imageBase64: string) => {
-    if (isAnalyzing) return; // Skip if already analyzing
     await handleAnalyze(imageBase64);
-  }, [handleAnalyze, isAnalyzing]);
+  }, [handleAnalyze]);
 
   const handleClearAlerts = useCallback(() => {
     setDetections([]);
