@@ -77,7 +77,7 @@ export async function analyzeImage(imageBase64: string, mode: 'image' | 'camera'
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const { data, error } = await supabase.functions.invoke('analyze-image', {
-        body: { image: imageBase64 },
+        body: { image: imageBase64, mode },
       });
 
       if (error) {
