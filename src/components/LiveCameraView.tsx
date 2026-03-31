@@ -25,7 +25,10 @@ export function LiveCameraView({
   const timeoutRef = useRef<number | null>(null);
   const analyzingRef = useRef(false);
   const inFlightRef = useRef(false);
+  const lastCaptureAtRef = useRef(0);
   const [objectCounts, setObjectCounts] = useState<Record<string, number>>({});
+  const MIN_CAPTURE_INTERVAL_MS = 10000;
+  const BUSY_POLL_MS = 500;
 
   useEffect(() => {
     analyzingRef.current = isAnalyzing;
@@ -95,7 +98,7 @@ export function LiveCameraView({
 
   // Start/stop capture loop
   // - Uses setTimeout (not setInterval) to avoid overlap.
-  // - Uses refs to avoid stale closures on isAnalyzing.
+  // - Enforces a hard minimum gap between capture starts.
   // - Uses a local single-flight lock to prevent rapid double-submits.
   useEffect(() => {
     const clearTimer = () => {
@@ -106,27 +109,32 @@ export function LiveCameraView({
     };
 
     const tick = () => {
-      // Stop conditions
       if (!isActive || !isStreaming) {
         clearTimer();
         return;
       }
 
-      // If analysis is still running, poll soon (don't enqueue new work)
+      const now = Date.now();
+      const remainingInterval = Math.max(0, lastCaptureAtRef.current + MIN_CAPTURE_INTERVAL_MS - now);
+
+      if (remainingInterval > 0) {
+        timeoutRef.current = window.setTimeout(tick, remainingInterval);
+        return;
+      }
+
       if (analyzingRef.current || inFlightRef.current) {
-        timeoutRef.current = window.setTimeout(tick, 250);
+        timeoutRef.current = window.setTimeout(tick, BUSY_POLL_MS);
         return;
       }
 
       const frame = captureFrame();
       if (frame) {
-        // Lock immediately (parent state update can lag by a render)
+        lastCaptureAtRef.current = Date.now();
         inFlightRef.current = true;
-        onFrameCapture(frame);
+        void onFrameCapture(frame);
       }
 
-      // Next scheduled capture (conservative to avoid provider rate limits)
-      timeoutRef.current = window.setTimeout(tick, 5000);
+      timeoutRef.current = window.setTimeout(tick, MIN_CAPTURE_INTERVAL_MS);
     };
 
     clearTimer();
@@ -144,6 +152,13 @@ export function LiveCameraView({
   }, [startCamera, onToggle]);
 
   const handleStop = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    analyzingRef.current = false;
+    inFlightRef.current = false;
+    lastCaptureAtRef.current = 0;
     stopCamera();
     onToggle(false);
   }, [stopCamera, onToggle]);
