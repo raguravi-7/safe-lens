@@ -126,7 +126,7 @@ export function LiveCameraView({
       }
 
       // Next scheduled capture (conservative to avoid provider rate limits)
-      timeoutRef.current = window.setTimeout(tick, 3000);
+      timeoutRef.current = window.setTimeout(tick, 5000);
     };
 
     clearTimer();
