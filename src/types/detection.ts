@@ -22,10 +22,14 @@ export type DetectionCategory =
   | 'weapon_gun'
   | 'weapon_knife'
   | 'accident'
+  | 'fire'
   | 'fainting'
   | 'bad_behavior'
   | 'person'
   | 'animal';
+
+// Only these categories trigger alerts
+export const ALERT_CATEGORIES: DetectionCategory[] = ['fight', 'accident', 'fire'];
 
 export interface DetectionResult {
   detections: Detection[];
@@ -47,10 +51,11 @@ export const CATEGORY_CONFIG: Record<DetectionCategory, {
   icon: string;
   color: string;
 }> = {
-  fight: { label: 'Fight', severity: 'critical', icon: '⚔️', color: 'hsl(0, 84%, 60%)' },
+  fight: { label: 'Fighting / Violence', severity: 'critical', icon: '⚔️', color: 'hsl(0, 84%, 60%)' },
   weapon_gun: { label: 'Gun', severity: 'critical', icon: '🔫', color: 'hsl(0, 84%, 60%)' },
   weapon_knife: { label: 'Knife', severity: 'critical', icon: '🔪', color: 'hsl(0, 84%, 60%)' },
-  accident: { label: 'Accident', severity: 'critical', icon: '💥', color: 'hsl(0, 84%, 60%)' },
+  accident: { label: 'Road Accident', severity: 'critical', icon: '🚗', color: 'hsl(0, 84%, 60%)' },
+  fire: { label: 'Fire Emergency', severity: 'critical', icon: '🔥', color: 'hsl(15, 90%, 55%)' },
   fainting: { label: 'Fainting', severity: 'warning', icon: '😵', color: 'hsl(45, 93%, 47%)' },
   bad_behavior: { label: 'Bad Behavior', severity: 'warning', icon: '⚠️', color: 'hsl(45, 93%, 47%)' },
   person: { label: 'Person', severity: 'info', icon: '👤', color: 'hsl(142, 71%, 45%)' },
