@@ -9,6 +9,7 @@ import { useAlertSound } from '@/hooks/useAlertSound';
 import { useDetectionHistory } from '@/hooks/useDetectionHistory';
 import { analyzeImage } from '@/lib/analyzeImage';
 import type { Detection, SeverityLevel } from '@/types/detection';
+import { ALERT_CATEGORIES } from '@/types/detection';
 import { Film, Video } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -31,21 +32,21 @@ export default function Index() {
       
       addEntry(result, mode, imageBase64);
 
-      const hasCritical = result.detections.some(d => d.severity === 'critical');
-      const hasWarning = result.detections.some(d => d.severity === 'warning');
+      // Only alert for fighting, road accidents, and fire emergencies
+      const alertDetections = result.detections.filter(d => ALERT_CATEGORIES.includes(d.category));
       
-      if (hasCritical) {
+      if (alertDetections.length > 0) {
         playAlertSound('critical');
-        toast.error('⚠️ Critical threat detected!', {
-          description: `${result.detections.filter(d => d.severity === 'critical').length} critical detection(s)`,
+        const labels = alertDetections.map(d => {
+          if (d.category === 'fight') return '⚔️ Fighting/Violence';
+          if (d.category === 'accident') return '🚗 Road Accident';
+          if (d.category === 'fire') return '🔥 Fire Emergency';
+          return d.category;
         });
-      } else if (hasWarning) {
-        playAlertSound('warning');
-        toast.warning('Warning detected', {
-          description: `${result.detections.filter(d => d.severity === 'warning').length} warning(s)`,
+        toast.error('🚨 EMERGENCY ALERT!', {
+          description: [...new Set(labels)].join(', '),
+          duration: 8000,
         });
-      } else if (result.detections.length > 0) {
-        playAlertSound('info');
       }
     } catch (error) {
       console.error('Analysis failed:', error);

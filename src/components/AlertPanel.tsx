@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Bell, Trash2, Download } from 'lucide-react';
 import type { Detection, SeverityLevel } from '@/types/detection';
-import { CATEGORY_CONFIG, SEVERITY_CONFIG } from '@/types/detection';
+import { CATEGORY_CONFIG, SEVERITY_CONFIG, ALERT_CATEGORIES } from '@/types/detection';
 import { format } from 'date-fns';
 
 interface AlertPanelProps {
@@ -13,9 +13,11 @@ interface AlertPanelProps {
 }
 
 export function AlertPanel({ detections, onClear, onExport }: AlertPanelProps) {
-  const criticalCount = detections.filter(d => d.severity === 'critical').length;
-  const warningCount = detections.filter(d => d.severity === 'warning').length;
-  const infoCount = detections.filter(d => d.severity === 'info').length;
+  // Only show alerts for fighting, road accidents, and fire emergencies
+  const alertDetections = detections.filter(d => ALERT_CATEGORIES.includes(d.category));
+  const criticalCount = alertDetections.filter(d => d.severity === 'critical').length;
+  const warningCount = alertDetections.filter(d => d.severity === 'warning').length;
+  const infoCount = alertDetections.filter(d => d.severity === 'info').length;
 
   return (
     <div className="glass flex h-full flex-col rounded-xl border border-border/50">
@@ -25,9 +27,9 @@ export function AlertPanel({ detections, onClear, onExport }: AlertPanelProps) {
             <Bell className="h-4 w-4 text-primary" />
           </div>
           <h2 className="font-semibold text-foreground">Alerts</h2>
-          {detections.length > 0 && (
+          {alertDetections.length > 0 && (
             <Badge className="ml-2 bg-primary/20 text-primary">
-              {detections.length}
+              {alertDetections.length}
             </Badge>
           )}
         </div>
@@ -48,13 +50,13 @@ export function AlertPanel({ detections, onClear, onExport }: AlertPanelProps) {
       </div>
 
       <ScrollArea className="flex-1 p-2">
-        {detections.length === 0 ? (
+        {alertDetections.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-muted-foreground">
-            <p className="text-sm">No detections yet</p>
+            <p className="text-sm">No alerts — monitoring for fights, accidents & fires</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {detections.map(detection => (
+            {alertDetections.map(detection => (
               <AlertItem key={detection.id} detection={detection} />
             ))}
           </div>

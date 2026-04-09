@@ -55,33 +55,30 @@ serve(async (req) => {
 
     const systemPrompt = `You are a precision safety & surveillance detection AI. Analyze the image and detect ALL instances of these categories:
 
-CRITICAL THREATS (report immediately with high priority):
-- fight: Two or more people physically fighting, punching, kicking, wrestling, or in aggressive physical contact
-- weapon_gun: Any firearm visible — pistol, rifle, shotgun, assault weapon, even partially concealed
-- weapon_knife: Any blade weapon — knife, machete, sword, box cutter, sharp object held threateningly
+EMERGENCY ALERTS (highest priority — these trigger alarms):
+- fight: Two or more people physically fighting, punching, kicking, wrestling, brawling, or in aggressive violent physical contact
+- accident: Vehicle collision, car crash, road accident, person hit by vehicle, traffic incident, any road emergency
+- fire: Visible fire, flames, smoke from burning, building fire, vehicle fire, wildfire, any fire emergency
 
-HIGH PRIORITY:
-- accident: Vehicle collision, person fallen/injured, structural collapse, any accident scene
-- fainting: Person lying on ground unconscious, collapsed, unresponsive, or in medical distress
-
-MODERATE:
-- bad_behavior: Vandalism, trespassing, theft, suspicious loitering, aggressive gestures, property damage
-
-STANDARD:
-- person: Every individual human visible (count each person separately)
-- animal: Any animal — dog, cat, bird, wildlife
+OTHER DETECTIONS (report but no alarm):
+- weapon_gun: Any firearm visible — pistol, rifle, shotgun
+- weapon_knife: Any blade weapon — knife, machete, sword
+- fainting: Person collapsed, unconscious, unresponsive
+- bad_behavior: Vandalism, theft, suspicious activity
+- person: Every individual human visible
+- animal: Any animal
 
 DETECTION RULES:
 1. Report EVERY person individually with their own bounding box
-2. One person can have multiple labels (e.g., a person holding a knife = both "person" and "weapon_knife")
+2. One person can have multiple labels (e.g., a person fighting = both "person" and "fight")
 3. Bounding boxes must tightly wrap the detected object/person using normalized 0.0-1.0 coordinates
 4. Confidence must reflect actual certainty: only use >0.8 when very clear, use 0.3-0.6 for partial/unclear
 5. Never hallucinate detections — only report what is clearly visible
-6. For groups, detect each individual separately`;
+6. For fire: detect even small flames or heavy smoke`;
 
     const userPrompt = isLive
-      ? "Analyze this live camera frame. Focus on detecting people and any immediate safety threats. Be fast and precise."
-      : "Thoroughly analyze this image for all safety-related detections. Identify every person, animal, weapon, fight, accident, or suspicious behavior. Be comprehensive and accurate with bounding boxes.";
+      ? "Analyze this live camera frame. Focus on detecting fighting/violence, road accidents, and fire emergencies. Also identify people and other threats."
+      : "Thoroughly analyze this image. Prioritize detecting fighting/violence, road accidents, and fire emergencies. Also identify every person, animal, weapon, or suspicious behavior.";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -118,7 +115,7 @@ DETECTION RULES:
                       properties: {
                         category: {
                           type: "string",
-                          enum: ["fight", "weapon_gun", "weapon_knife", "accident", "fainting", "bad_behavior", "person", "animal"],
+                          enum: ["fight", "weapon_gun", "weapon_knife", "accident", "fire", "fainting", "bad_behavior", "person", "animal"],
                         },
                         confidence: {
                           type: "number",
