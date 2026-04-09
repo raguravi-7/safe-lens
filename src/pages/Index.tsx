@@ -32,21 +32,40 @@ export default function Index() {
       
       addEntry(result, mode, imageBase64);
 
-      // Only alert for fighting, road accidents, and fire emergencies
       const alertDetections = result.detections.filter(d => ALERT_CATEGORIES.includes(d.category));
       
       if (alertDetections.length > 0) {
-        playAlertSound('critical');
-        const labels = alertDetections.map(d => {
-          if (d.category === 'fight') return '⚔️ Fighting/Violence';
-          if (d.category === 'accident') return '🚗 Road Accident';
-          if (d.category === 'fire') return '🔥 Fire Emergency';
-          return d.category;
-        });
-        toast.error('🚨 EMERGENCY ALERT!', {
-          description: [...new Set(labels)].join(', '),
-          duration: 8000,
-        });
+        const emergencies = alertDetections.filter(d => ['fight', 'accident', 'fire'].includes(d.category));
+        const weapons = alertDetections.filter(d => ['weapon_gun', 'weapon_knife'].includes(d.category));
+        const people = alertDetections.filter(d => d.category === 'person');
+        const animals = alertDetections.filter(d => d.category === 'animal');
+
+        if (emergencies.length > 0) {
+          playAlertSound('critical');
+          const labels = emergencies.map(d => {
+            if (d.category === 'fight') return '⚔️ Fighting/Violence';
+            if (d.category === 'accident') return '🚗 Road Accident';
+            if (d.category === 'fire') return '🔥 Fire Emergency';
+            return d.category;
+          });
+          toast.error('🚨 EMERGENCY ALERT!', {
+            description: [...new Set(labels)].join(', '),
+            duration: 8000,
+          });
+        }
+        if (weapons.length > 0) {
+          playAlertSound('critical');
+          toast.error('🔫 Weapon Detected!', {
+            description: `${weapons.length} weapon(s) identified`,
+            duration: 6000,
+          });
+        }
+        if (people.length > 0) {
+          toast.info(`👤 ${people.length} person(s) detected`);
+        }
+        if (animals.length > 0) {
+          toast.info(`🐾 ${animals.length} animal(s) detected`);
+        }
       }
     } catch (error) {
       console.error('Analysis failed:', error);

@@ -29,7 +29,7 @@ export type DetectionCategory =
   | 'animal';
 
 // Only these categories trigger alerts
-export const ALERT_CATEGORIES: DetectionCategory[] = ['fight', 'accident', 'fire'];
+export const ALERT_CATEGORIES: DetectionCategory[] = ['fight', 'accident', 'fire', 'weapon_gun', 'weapon_knife', 'person', 'animal'];
 
 export interface DetectionResult {
   detections: Detection[];
