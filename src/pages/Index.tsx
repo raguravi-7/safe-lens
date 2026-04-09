@@ -2,14 +2,14 @@ import { useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Header } from '@/components/Header';
 import { AlertPanel } from '@/components/AlertPanel';
-import { ImageAnalysisView } from '@/components/ImageAnalysisView';
+import { VideoAnalysisView } from '@/components/VideoAnalysisView';
 import { LiveCameraView } from '@/components/LiveCameraView';
 import { HistoryPanel } from '@/components/HistoryPanel';
 import { useAlertSound } from '@/hooks/useAlertSound';
 import { useDetectionHistory } from '@/hooks/useDetectionHistory';
 import { analyzeImage } from '@/lib/analyzeImage';
 import type { Detection, SeverityLevel } from '@/types/detection';
-import { Image, Video } from 'lucide-react';
+import { Film, Video } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Index() {
@@ -125,8 +125,8 @@ Total entries: ${history.length}
           >
             <TabsList className="glass grid w-full max-w-md grid-cols-2 border border-border/50">
               <TabsTrigger value="image" className="gap-2 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
-                <Image className="h-4 w-4" />
-                Image Analysis
+                <Film className="h-4 w-4" />
+                Video Analysis
               </TabsTrigger>
               <TabsTrigger value="camera" className="gap-2 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
                 <Video className="h-4 w-4" />
@@ -136,7 +136,7 @@ Total entries: ${history.length}
 
             <TabsContent value="image" className="mt-4">
               <div className="glass rounded-xl border border-border/30 p-6 shadow-lg shadow-primary/5">
-                <ImageAnalysisView
+                <VideoAnalysisView
                   onAnalyze={handleAnalyze}
                   detections={detections}
                   isAnalyzing={isAnalyzing}
