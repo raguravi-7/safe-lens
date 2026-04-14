@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Header } from '@/components/Header';
 import { AlertPanel } from '@/components/AlertPanel';
-import { VideoAnalysisView } from '@/components/VideoAnalysisView';
+import { ImageAnalysisView } from '@/components/ImageAnalysisView';
 import { LiveCameraView } from '@/components/LiveCameraView';
 import { HistoryPanel } from '@/components/HistoryPanel';
 import { useAlertSound } from '@/hooks/useAlertSound';
@@ -10,7 +10,7 @@ import { useDetectionHistory } from '@/hooks/useDetectionHistory';
 import { analyzeImage } from '@/lib/analyzeImage';
 import type { Detection, SeverityLevel } from '@/types/detection';
 import { ALERT_CATEGORIES } from '@/types/detection';
-import { Film, Video } from 'lucide-react';
+import { ImageIcon, Video } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Index() {
@@ -98,7 +98,6 @@ export default function Index() {
   }, [exportToJSON]);
 
   const handleExportPDF = useCallback(() => {
-    // Simple PDF export (text-based)
     const stats = getDetectionStats();
     const content = `
 SafeGuard AI Detection Report
@@ -124,7 +123,6 @@ Total entries: ${history.length}
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      {/* Floating orbs background */}
       <div className="floating-orbs">
         <div className="floating-orb floating-orb-1" />
         <div className="floating-orb floating-orb-2" />
@@ -136,7 +134,6 @@ Total entries: ${history.length}
       <Header isConnected={isConnected} isAnalyzing={isAnalyzing} />
       
       <main className="flex flex-1 gap-4 p-4">
-        {/* Main content area */}
         <div className="flex flex-1 flex-col gap-4">
           <Tabs 
             value={activeTab} 
@@ -145,8 +142,8 @@ Total entries: ${history.length}
           >
             <TabsList className="glass grid w-full max-w-md grid-cols-2 border border-border/50">
               <TabsTrigger value="image" className="gap-2 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
-                <Film className="h-4 w-4" />
-                Video Analysis
+                <ImageIcon className="h-4 w-4" />
+                Image Analysis
               </TabsTrigger>
               <TabsTrigger value="camera" className="gap-2 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
                 <Video className="h-4 w-4" />
@@ -156,7 +153,7 @@ Total entries: ${history.length}
 
             <TabsContent value="image" className="mt-4">
               <div className="glass rounded-xl border border-border/30 p-6 shadow-lg shadow-primary/5">
-                <VideoAnalysisView
+                <ImageAnalysisView
                   onAnalyze={handleAnalyze}
                   detections={detections}
                   isAnalyzing={isAnalyzing}
@@ -177,7 +174,6 @@ Total entries: ${history.length}
             </TabsContent>
           </Tabs>
 
-          {/* History Panel */}
           <div className="h-[300px]">
             <HistoryPanel
               history={history}
@@ -191,7 +187,6 @@ Total entries: ${history.length}
           </div>
         </div>
 
-        {/* Alert Panel Sidebar */}
         <aside className="w-80 shrink-0">
           <AlertPanel
             detections={detections}
