@@ -52,7 +52,7 @@ export function AlertPanel({ detections, onClear, onExport }: AlertPanelProps) {
       <ScrollArea className="flex-1 p-2">
         {alertDetections.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-muted-foreground">
-            <p className="text-sm">No alerts — monitoring for fights, accidents & fires</p>
+            <p className="text-sm">No alerts — monitoring for threats, people & animals</p>
           </div>
         ) : (
           <div className="space-y-2">

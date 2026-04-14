@@ -47,38 +47,40 @@ serve(async (req) => {
       );
     }
 
-    // Use faster model for live camera, more accurate model for uploaded images
     const isLive = mode === "camera";
-    const model = isLive ? "google/gemini-2.5-flash-lite" : "google/gemini-3-flash-preview";
+    const model = isLive ? "google/gemini-2.5-flash-lite" : "google/gemini-2.5-pro";
 
     console.log(`Analyzing image (mode: ${mode || "image"}, model: ${model})...`);
 
-    const systemPrompt = `You are a precision safety & surveillance detection AI. Analyze the image and detect ALL instances of these categories:
+    const systemPrompt = `You are an expert safety and surveillance detection AI with high accuracy. Analyze the image carefully and detect ALL visible instances of these categories:
 
-EMERGENCY ALERTS (highest priority — these trigger alarms):
-- fight: Two or more people physically fighting, punching, kicking, wrestling, brawling, or in aggressive violent physical contact
-- accident: Vehicle collision, car crash, road accident, person hit by vehicle, traffic incident, any road emergency
-- fire: Visible fire, flames, smoke from burning, building fire, vehicle fire, wildfire, any fire emergency
+CRITICAL ALERTS (trigger emergency alarms):
+- fight: Physical violence — punching, kicking, wrestling, brawling, aggressive physical contact between people
+- accident: Vehicle collision, car crash, road accident, overturned vehicle, person hit by vehicle
+- fire: Visible flames, heavy smoke, burning objects, building/vehicle/wildfire
+- weapon_gun: Any visible firearm — pistol, rifle, shotgun, handgun
+- weapon_knife: Any visible blade — knife, machete, sword, dagger
 
-OTHER DETECTIONS (report but no alarm):
-- weapon_gun: Any firearm visible — pistol, rifle, shotgun
-- weapon_knife: Any blade weapon — knife, machete, sword
-- fainting: Person collapsed, unconscious, unresponsive
-- bad_behavior: Vandalism, theft, suspicious activity
-- person: Every individual human visible
-- animal: Any animal
+STANDARD DETECTIONS (always report):
+- person: Every individual human visible in the image. Report each person separately.
+- animal: Any animal — dogs, cats, birds, livestock, wildlife
 
-DETECTION RULES:
-1. Report EVERY person individually with their own bounding box
-2. One person can have multiple labels (e.g., a person fighting = both "person" and "fight")
-3. Bounding boxes must tightly wrap the detected object/person using normalized 0.0-1.0 coordinates
-4. Confidence must reflect actual certainty: only use >0.8 when very clear, use 0.3-0.6 for partial/unclear
-5. Never hallucinate detections — only report what is clearly visible
-6. For fire: detect even small flames or heavy smoke`;
+OTHER (report if clearly visible):
+- fainting: Person collapsed on ground, unconscious, unresponsive
+- bad_behavior: Vandalism, theft in progress, trespassing, suspicious activity
+
+ACCURACY RULES:
+1. Be thorough: detect EVERY person and animal individually with separate bounding boxes
+2. Be precise: bounding boxes must tightly wrap the detected subject using normalized 0.0-1.0 coordinates
+3. Be honest: confidence must reflect actual certainty. Use >0.85 only when detection is unmistakable. Use 0.4-0.7 for partially visible or uncertain detections.
+4. NEVER hallucinate: only report what is clearly visible in the image
+5. One subject can have multiple labels (e.g. a person holding a knife = both "person" and "weapon_knife")
+6. For weapons: look carefully at hands and objects being carried
+7. For fire: detect even small flames, sparks, or thick smoke`;
 
     const userPrompt = isLive
-      ? "Analyze this live camera frame. Focus on detecting fighting/violence, road accidents, and fire emergencies. Also identify people and other threats."
-      : "Thoroughly analyze this image. Prioritize detecting fighting/violence, road accidents, and fire emergencies. Also identify every person, animal, weapon, or suspicious behavior.";
+      ? "Analyze this live camera frame quickly. Detect all people, animals, weapons, fighting, accidents, and fire."
+      : "Thoroughly analyze this image with maximum accuracy. Detect every person, animal, weapon, fight, accident, fire, and any suspicious activity. Be comprehensive — do not miss any detection.";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -109,7 +111,7 @@ DETECTION RULES:
                 properties: {
                   detections: {
                     type: "array",
-                    description: "Array of all detections found in the image. Each person should be reported individually.",
+                    description: "Array of all detections. Report each person/animal individually.",
                     items: {
                       type: "object",
                       properties: {
@@ -119,16 +121,16 @@ DETECTION RULES:
                         },
                         confidence: {
                           type: "number",
-                          description: "Confidence score 0.0-1.0. Use >0.8 only when very clear.",
+                          description: "Confidence 0.0-1.0. >0.85 only for unmistakable detections.",
                         },
                         bounding_box: {
                           type: "object",
                           description: "Tight bounding box in normalized 0.0-1.0 coordinates",
                           properties: {
-                            x_min: { type: "number", description: "Left edge 0.0-1.0" },
-                            y_min: { type: "number", description: "Top edge 0.0-1.0" },
-                            x_max: { type: "number", description: "Right edge 0.0-1.0" },
-                            y_max: { type: "number", description: "Bottom edge 0.0-1.0" },
+                            x_min: { type: "number" },
+                            y_min: { type: "number" },
+                            x_max: { type: "number" },
+                            y_max: { type: "number" },
                           },
                           required: ["x_min", "y_min", "x_max", "y_max"],
                         },
@@ -136,8 +138,8 @@ DETECTION RULES:
                       required: ["category", "confidence", "bounding_box"],
                     },
                   },
-                  image_width: { type: "number", description: "Estimated width in pixels" },
-                  image_height: { type: "number", description: "Estimated height in pixels" },
+                  image_width: { type: "number" },
+                  image_height: { type: "number" },
                 },
                 required: ["detections"],
               },
@@ -179,13 +181,11 @@ DETECTION RULES:
       try {
         const args = JSON.parse(data.choices[0].message.tool_calls[0].function.arguments);
         detections = (args.detections || []).filter((d: Detection) => {
-          // Filter out invalid detections
           if (!d.category || typeof d.confidence !== "number") return false;
-          if (d.confidence < 0.15) return false; // Drop very low confidence noise
+          if (d.confidence < 0.12) return false;
           const bb = d.bounding_box;
           if (!bb || bb.x_min >= bb.x_max || bb.y_min >= bb.y_max) return false;
-          if (bb.x_min < 0 || bb.y_min < 0 || bb.x_max > 1.05 || bb.y_max > 1.05) return false;
-          // Clamp to valid range
+          if (bb.x_min < -0.05 || bb.y_min < -0.05 || bb.x_max > 1.1 || bb.y_max > 1.1) return false;
           d.bounding_box.x_min = Math.max(0, Math.min(1, bb.x_min));
           d.bounding_box.y_min = Math.max(0, Math.min(1, bb.y_min));
           d.bounding_box.x_max = Math.max(0, Math.min(1, bb.x_max));
