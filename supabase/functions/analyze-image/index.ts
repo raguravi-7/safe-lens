@@ -48,7 +48,7 @@ serve(async (req) => {
     }
 
     const isLive = mode === "camera";
-    const model = isLive ? "google/gemini-2.5-flash-lite" : "google/gemini-2.5-pro";
+    const model = isLive ? "google/gemini-2.5-flash" : "google/gemini-2.5-pro";
 
     console.log(`Analyzing image (mode: ${mode || "image"}, model: ${model})...`);
 
