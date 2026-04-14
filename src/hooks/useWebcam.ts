@@ -20,9 +20,9 @@ export function useWebcam(): UseWebcamReturn {
       setError(null);
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'user',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          facingMode: 'environment',
         },
       });
       
@@ -58,7 +58,7 @@ export function useWebcam(): UseWebcamReturn {
 
     const canvas = document.createElement('canvas');
     // Downscale for live mode to reduce payload and speed up AI processing
-    const maxDim = 640;
+    const maxDim = 1024;
     const scale = Math.min(1, maxDim / Math.max(video.videoWidth, video.videoHeight));
     canvas.width = Math.round(video.videoWidth * scale);
     canvas.height = Math.round(video.videoHeight * scale);
@@ -67,7 +67,7 @@ export function useWebcam(): UseWebcamReturn {
     if (!ctx) return null;
     
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     // Guard against empty or malformed captures
     if (!dataUrl || dataUrl.length < 100 || dataUrl === 'data:,') return null;
     return dataUrl;
